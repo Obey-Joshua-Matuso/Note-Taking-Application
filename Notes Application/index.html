@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@100;500&family=Outfit:wght@500&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Quicksand:wght@300;400&family=Roboto:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/981193d637.js" crossorigin="anonymous"></script>  
+    <script src="index.js"></script>
+    <title>Jotter.io</title>
+</head>
+<body>
+    <header class="header">
+        <h1>My lists</h1>
+        <img src="images/profile.jpg" />
+    </header>
+    <div class="bg-cover"></div>
+    <div class="alerts">
+        <div class="green-alert">
+            <i class="fa-solid fa-circle-check"><span> Note Added !</span></i>
+        </div>
+    </div>
+    
+    <section class="my-list">
+
+        <div class="date"><p>20 February 2024</p></div>
+
+        <div class="list">
+        
+        <div class="empty-list-message">
+            <i class="fa-solid fa-file"><span> You don't have any lists yet :(</span></i>
+        </div>
+        
+        <div class="add-item">
+            <form type="submit">
+                <input type="text" id="list-item-title" placeholder="Title">
+                <input type="text" id="list-item-date" placeholder="Date">
+                <textarea type="text" id="list-item-contents"></textarea>
+                <div class="btn-wrapper">
+                    <button type="submit" id="add-item-btn" onclick="close_add_item()">Add List</button>
+                </div>
+            </form>
+            <div class="btn-wrapper-cancel">
+                <button type="submit" id="edit-item-btn">Save Changes</button>
+                <i class="fa-solid fa-xmark" id="cancel-btn" onclick="close_add_item()"></i>
+            </div>
+        </div>
+
+
+        </div>
+
+        <div class="nav-bar">
+            <i class="fa-brands fa-telegram"></i>
+            <i class="fa-solid fa-circle-plus" id="addIcon" style="font-size: 30px; padding-bottom: 0.4em;" onclick="open_add_item()"></i>
+            <i class="fa-solid fa-trash"></i>
+        </div>
+
+
+    </section>
+
+
+</body>
+<script>
+// Initialize lists array outside the function
+const lists = [];
+
+// Define activeObjectID using let
+let activeObjectID;
+
+// Open or close the add list item form
+const titleInput = document.getElementById("list-item-title");
+const dateInput = document.getElementById("list-item-date");
+const contentsInput = document.getElementById("list-item-contents");
+
+
+
+function open_add_item() {
+    document.querySelector(".add-item").style.display = "flex";
+
+    titleInput.value = "";
+    dateInput.value = "";
+    contentsInput.value = "";
+
+    document.getElementById("add-item-btn").style.display = "flex";
+    document.getElementById("edit-item-btn").style.display = "none";
+    document.querySelector(".bg-cover").style.display = "flex";
+}
+
+function close_add_item() {
+    document.querySelector(".add-item").style.display = "none";
+    document.querySelector(".bg-cover").style.display = "none";
+}
+
+// Handle form submission
+document.querySelector("form").addEventListener("submit", function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    // Collect input values
+    const TITLE = titleInput.value;
+    const DATE = dateInput.value;
+    const CONTENT = contentsInput.value;
+
+    // Create list item object and add it to the list
+    createListItemObject(TITLE, DATE, CONTENT);
+
+    // Reset the values of the form fields
+    titleInput.value = "";
+    dateInput.value = "";
+    contentsInput.value = "";
+
+    // Display alert and reset state
+    const greenAlert = document.querySelector(".green-alert");
+    greenAlert.style.animation = "slide-in-out 2.5s";
+    setTimeout(function() {
+        greenAlert.style.animation = "none"; // This line will be executed after 3 seconds
+    }, 3000);
+});
+
+// Create List-Item Object
+function createListItemObject(titleValue, dateValue, contentValue) {
+    const list = document.querySelector(".list");
+
+    // Create a new list item object
+    const listItemObject = new ListItem(titleValue, dateValue, contentValue);
+
+    // Add the new list item object to the list
+    lists.push(listItemObject);
+
+    // Show or hide empty list message
+    const emptyListMessage = document.querySelector(".empty-list-message");
+    emptyListMessage.style.display = lists.length === 0 ? "flex" : "none";
+
+    // Create DOM elements for the list item
+    const newDiv = document.createElement("div");
+    const newBullet = document.createElement("div");
+    const newTitle = document.createElement("h4");
+    const newIcon = document.createElement("i");
+
+    // Add event listener to every list object
+    newDiv.addEventListener("click", editListObject);
+
+    // Add classes and text content
+    newDiv.classList.add("list-item");
+    newDiv.setAttribute("id", `${lists.indexOf(listItemObject)}`);
+    newBullet.classList.add("bullet");
+    newIcon.classList.add("fa-solid", "fa-trash");
+    newTitle.textContent = listItemObject.title;
+
+    // Store div id for later use
+    activeObjectID = lists.indexOf(listItemObject);
+
+    // Append elements to the new list item
+    newDiv.appendChild(newBullet);
+    newDiv.appendChild(newTitle);
+    newDiv.appendChild(newIcon);
+
+    // Append the new list item to the list
+    list.appendChild(newDiv);
+}
+
+// Handle Edit List Object
+function editListObject(event) {
+    // Get the object that has been clicked
+    activeObjectID = parseInt(event.currentTarget.getAttribute("id"));
+
+    const currentObject = lists[activeObjectID];
+    
+    document.getElementById("add-item-btn").style.display = "none";
+    document.getElementById("edit-item-btn").style.display = "flex";
+
+    titleInput.value = currentObject.title;
+    dateInput.value = currentObject.date;
+    contentsInput.value = currentObject.contents;
+
+    document.querySelector(".add-item").style.display = "flex";
+    document.querySelector(".bg-cover").style.display = "flex";
+}
+
+// Handle Update List Item
+document.getElementById("edit-item-btn").addEventListener("click", updateListItem);
+
+function updateListItem() {
+    const updatedTitle = titleInput.value;
+    const updatedDate = dateInput.value;
+    const updatedContents = contentsInput.value;
+
+    const editedObject = lists[activeObjectID];
+
+    editedObject.title = updatedTitle;
+    editedObject.date = updatedDate;
+    editedObject.contents = updatedContents; 
+
+    newTitle = document.getElementById(`${activeObjectID} h4`)
+    //newTitleContent = editedObject.title;
+    const titleElement = document.querySelector(`.list-item[id="${activeObjectID}"] h4`);
+
+    if (titleElement) {
+        // Update the title content
+        titleElement.textContent = updatedTitle;
+    } else {
+        console.error("Title element not found.");
+    }
+
+    document.querySelector(".add-item").style.display = "none";
+    document.querySelector(".bg-cover").style.display = "none";
+}
+
+// Blueprint for a list item
+class ListItem {
+    constructor(title, date, contents) {
+        this.title = title;
+        this.date = date;
+        this.contents = contents;
+    }
+}
+
+</script>
+    
+</html>
